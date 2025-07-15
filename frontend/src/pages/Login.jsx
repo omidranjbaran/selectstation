@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { login } from "../lib/api";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -46,9 +48,9 @@ export default function Login() {
           response.data.role === "superuser" ||
           response.data.role === "staff"
         ) {
-          window.location.href = "/dashboard/admin";
+          navigate("/dashboard/admin");
         } else {
-          window.location.href = "/dashboard/student";
+          navigate("/dashboard/student");
         }
       }, 1500);
     } catch (err) {
