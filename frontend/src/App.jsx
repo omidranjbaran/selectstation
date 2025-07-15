@@ -4,12 +4,14 @@ import HomePage from "./pages/HomePage";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Register from "./pages/Register";
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/dashboard/admin"
           element={

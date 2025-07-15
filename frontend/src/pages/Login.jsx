@@ -11,6 +11,7 @@ export default function Login() {
   const [toast, setToast] = useState({ message: "", type: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Show toast notification
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => {
@@ -18,6 +19,7 @@ export default function Login() {
     }, 3000);
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,6 +65,7 @@ export default function Login() {
     }
   };
 
+  // Handle enter key press to submit form
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSubmit(e);
@@ -202,6 +205,7 @@ export default function Login() {
         </button>
       </form>
 
+      {/* Toast notification */}
       {toast.message && (
         <div
           className={`fixed top-5 right-5 z-50 px-5 py-3 rounded shadow-md text-white animate-fade-in-right ${

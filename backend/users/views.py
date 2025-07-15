@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import MyTokenObtainPairSerializer
+from rest_framework.decorators import permission_classes
 
 
 # List all users — anyone can access
@@ -43,6 +44,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 # API view to check if username is available
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
 def check_username(request):
     # Get 'username' from query params
     username = request.query_params.get('username')
@@ -58,6 +60,7 @@ def check_username(request):
 
 # API view to check if email is available
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
 def check_email(request):
     # Get 'email' from query params
     email = request.query_params.get('email')
