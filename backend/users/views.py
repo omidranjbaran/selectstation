@@ -2,13 +2,13 @@ from django.contrib.auth.models import User
 from rest_framework import generics
 from .serializers import UserSerializer, UserCreateSerializer, UserDetailSerializer
 from .permissions import IsOwnerOrAdmin
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import MyTokenObtainPairSerializer
 from rest_framework.decorators import permission_classes
-
+from rest_framework.views import APIView
 
 # List all users — anyone can access
 class UserListAPIView(generics.ListAPIView):
@@ -36,7 +36,13 @@ class UserDeleteAPIView(generics.DestroyAPIView):
     queryset = User.objects.all()
     permission_classes = [IsOwnerOrAdmin]
 
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
 # Custom JWT token obtain view using a custom serializer
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer

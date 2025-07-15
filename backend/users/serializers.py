@@ -3,12 +3,12 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class UserSerializer(serializers.ModelSerializer):
-    """
-    Serializer for displaying basic user information.
-    """
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'is_active', 'is_staff', 'is_superuser' 
+        ]
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -44,8 +44,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-        read_only_fields = ['id', 'username']  # Prevent username and id from being changed
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'is_active', 'is_staff', 'is_superuser'
+        ]
+        read_only_fields = ['id', 'username','email']  # Prevent username and id from being changed
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
