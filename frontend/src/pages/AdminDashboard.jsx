@@ -12,6 +12,9 @@ import Particles from "react-tsparticles";
 import api from "../lib/api";
 import LogoutButton from "../components/LogoutButton";
 import UserManagement from "../pages/UserManagement";
+import DeleteButton from "../components/DeleteButton";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import UserBadge from "../components/UserBadge";  // <-- ایمپورت UserBadge
 
 // رفع مشکل آیکون مارکر
 delete L.Icon.Default.prototype._getIconUrl;
@@ -31,40 +34,6 @@ function LocationSelector({ onSelect }) {
   return null;
 }
 
-function DeleteModal({ station, onCancel, onConfirm }) {
-  return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onCancel}
-    >
-      <div
-        className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full translate-y-[-100px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-bold mb-4">تایید حذف ایستگاه</h3>
-        <p className="mb-6">
-          آیا مطمئن هستید که می‌خواهید ایستگاه{" "}
-          <span className="font-semibold">{station?.name}</span> را حذف کنید؟
-        </p>
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={onCancel}
-            className="cursor-pointer px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition"
-          >
-            انصراف
-          </button>
-          <button
-            onClick={onConfirm}
-            className="cursor-pointer px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
-          >
-            حذف
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function StationForm({
   stationName,
   setStationName,
@@ -78,11 +47,7 @@ function StationForm({
       <MapContainer
         center={[32.6546, 51.6675]}
         zoom={12}
-        style={{
-          height: "400px",
-          width: "100%",
-          zIndex: 0,
-        }}
+        style={{ height: "400px", width: "100%", zIndex: 0 }}
         className="rounded-lg"
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -115,11 +80,14 @@ function StationForm({
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState([]);
+  const [filteredStats, setFilteredStats] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [stationName, setStationName] = useState("");
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [stationToDelete, setStationToDelete] = useState(null);
+  const [username, setUsername] = useState("کاربر ناشناس");
 
   const navigate = useNavigate();
 
@@ -127,6 +95,7 @@ export default function AdminDashboard() {
     try {
       const res = await api.get("locations/stations/stats/");
       setStats(res.data);
+      setFilteredStats(res.data);
     } catch (err) {
       console.error("خطا در دریافت آمار ایستگاه‌ها:", err);
       toast.error("خطا در دریافت آمار ایستگاه‌ها");
@@ -135,6 +104,23 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm === "") {
+      setFilteredStats(stats);
+    } else {
+      const filtered = stats.filter((station) =>
+        station.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredStats(filtered);
+    }
+  }, [searchTerm, stats]);
+
+  useEffect(() => {
+    // بارگزاری نام کاربر از localStorage
+    const user = localStorage.getItem("username");
+    if (user) setUsername(user);
   }, []);
 
   const requestDeleteStation = (station) => {
@@ -180,7 +166,6 @@ export default function AdminDashboard() {
     setLoading(false);
   };
 
-  // بارگذاری کامل tsparticles
   const particlesInit = async (main) => {
     await loadFull(main);
   };
@@ -191,46 +176,26 @@ export default function AdminDashboard() {
       dir="rtl"
       style={{ fontFamily: "Vazir, Tahoma, sans-serif" }}
     >
-      {/* پس‌زمینه ذرات */}
       <Particles
         id="tsparticles"
         init={particlesInit}
         options={{
           fullScreen: { enable: false },
-          background: {
-            color: {
-              value: "#bfdbfe",
-            },
-          },
+          background: { color: { value: "#bfdbfe" } },
           fpsLimit: 60,
           interactivity: {
             events: {
-              onHover: {
-                enable: true,
-                mode: "grab",
-              },
-              onClick: {
-                enable: true,
-                mode: "push",
-              },
+              onHover: { enable: true, mode: "grab" },
+              onClick: { enable: true, mode: "push" },
               resize: true,
             },
             modes: {
-              grab: {
-                distance: 140,
-                line_linked: {
-                  opacity: 0.5,
-                },
-              },
-              push: {
-                quantity: 4,
-              },
+              grab: { distance: 140, line_linked: { opacity: 0.5 } },
+              push: { quantity: 4 },
             },
           },
           particles: {
-            color: {
-              value: "#2563eb",
-            },
+            color: { value: "#2563eb" },
             links: {
               color: "#2563eb",
               distance: 150,
@@ -238,35 +203,19 @@ export default function AdminDashboard() {
               opacity: 0.4,
               width: 1,
             },
-            collisions: {
-              enable: false,
-            },
+            collisions: { enable: false },
             move: {
               direction: "none",
               enable: true,
-              outModes: {
-                default: "bounce",
-              },
+              outModes: { default: "bounce" },
               random: true,
               speed: 1,
               straight: false,
             },
-            number: {
-              density: {
-                enable: true,
-                area: 800,
-              },
-              value: 50,
-            },
-            opacity: {
-              value: 0.6,
-            },
-            shape: {
-              type: "circle",
-            },
-            size: {
-              value: { min: 1, max: 4 },
-            },
+            number: { density: { enable: true, area: 800 }, value: 50 },
+            opacity: { value: 0.6 },
+            shape: { type: "circle" },
+            size: { value: { min: 1, max: 4 } },
           },
           detectRetina: true,
         }}
@@ -280,17 +229,21 @@ export default function AdminDashboard() {
         }}
       />
 
-      {/* محتوای اصلی با z-index بالاتر */}
       <div style={{ position: "relative", zIndex: 10 }}>
         <header className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-blue-900">داشبورد مدیر</h1>
+
+          <UserBadge username={username} />
+
           <LogoutButton />
         </header>
 
-        {/* تغییر اصلی اینجاست */}
         <div className="flex flex-col 2xl:flex-row 2xl:items-start gap-8">
-          {/* فرم و نقشه سمت چپ */}
-          <section className="w-full 2xl:w-3/5 bg-white rounded-xl shadow-lg p-4 2xl:p-6">
+          {/* بخش نقشه و فرم - سمت چپ */}
+          <section
+            className="w-full 2xl:w-3/5 mb-60 bg-white rounded-xl shadow-lg p-4 2xl:p-6 flex flex-col"
+            style={{ minHeight: "600px" }}
+          >
             <h2 className="text-xl font-semibold mb-4 text-green-800">
               افزودن ایستگاه جدید روی نقشه
             </h2>
@@ -307,33 +260,51 @@ export default function AdminDashboard() {
             )}
           </section>
 
-          {/* لیست ایستگاه‌ها و مدیریت کاربران سمت راست */}
+          {/* بخش آمار و مدیریت کاربران - سمت راست */}
           <section className="w-full 2xl:w-2/5 flex flex-col gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-4 2xl:p-6">
-              <h2 className="text-xl font-semibold mb-4 text-blue-800">
+            <div
+              className="bg-white rounded-xl shadow-md p-6  2xl:mt-auto -mt-50 "
+              style={{ maxHeight: "400px", overflowY: "auto", position: "relative" }}
+            >
+              <h2 className="text-xl font-semibold mb-5 text-blue-900 border-b border-blue-300 pb-2">
                 آمار انتخاب ایستگاه‌ها توسط دانشجویان
               </h2>
-              {stats.length === 0 ? (
-                <p className="text-gray-500">هیچ اطلاعاتی موجود نیست.</p>
+
+              {/* کانتینر جستجو فیکس شده */}
+              <div
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  backgroundColor: "white",
+                  paddingBottom: "1rem",
+                  zIndex: 10,
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="جستجوی ایستگاه..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  dir="rtl"
+                  autoComplete="off"
+                />
+              </div>
+
+              {filteredStats.length === 0 ? (
+                <p className="text-gray-500 text-center mt-10">هیچ اطلاعاتی موجود نیست.</p>
               ) : (
-                <ul className="space-y-4 2xl:max-h-[400px] 2xl:overflow-y-auto">
-                  {stats.map((item) => (
+                <ul className="space-y-3 mt-4">
+                  {filteredStats.map((item) => (
                     <li
                       key={item.id}
-                      className="flex justify-between items-center bg-blue-100 px-5 py-3 rounded-lg shadow"
+                      className="flex justify-between items-center bg-blue-50 hover:bg-blue-100 transition rounded-md px-5 py-3 shadow-sm"
                     >
-                      <span className="font-semibold text-blue-900 flex-1">
-                        {item.name}
-                      </span>
-                      <span className="text-sm text-gray-700 w-20 text-center">
-                        {item.count} نفر
-                      </span>
-                      <button
-                        onClick={() => requestDeleteStation(item)}
-                        className="cursor-pointer bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
-                      >
-                        حذف
-                      </button>
+                      <span className="font-semibold text-blue-900 flex-1">{item.name}</span>
+                      <span className="text-sm text-gray-700 min-w-[80px] text-center">{item.count} نفر</span>
+                      <div className="flex-shrink-0">
+                        <DeleteButton onClick={() => requestDeleteStation(item)} />
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -346,13 +317,12 @@ export default function AdminDashboard() {
           </section>
         </div>
 
-        {showDeleteModal && (
-          <DeleteModal
-            station={stationToDelete}
-            onCancel={() => setShowDeleteModal(false)}
-            onConfirm={handleConfirmDelete}
-          />
-        )}
+        <ConfirmDeleteModal
+          isOpen={showDeleteModal}
+          itemName={stationToDelete?.name}
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={handleConfirmDelete}
+        />
 
         <ToastContainer
           position="top-center"

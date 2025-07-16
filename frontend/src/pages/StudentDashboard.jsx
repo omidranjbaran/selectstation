@@ -12,6 +12,8 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
+import EditUserModal from "../components/UserEditModal";
+
 // تنظیمات آیکون پیش‌فرض Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -24,33 +26,35 @@ export default function StudentDashboard() {
   const [stations, setStations] = useState([]);
   const [selectedStation, setSelectedStation] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+
   const username = localStorage.getItem("username") || "دانشجو";
 
-  // گرفتن لیست ایستگاه‌ها و ایستگاه انتخاب شده قبلی
+  // گرفتن لیست ایستگاه‌ها و اطلاعات کاربر و ایستگاه انتخاب شده قبلی
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [stationsResponse, selectedStationResponse] = await Promise.all([
-          api.get("locations/stations/"),
-          api.get("locations/student-station/"),
-        ]);
+        const [stationsResponse, selectedStationResponse, userResponse] =
+          await Promise.all([
+            api.get("locations/stations/"),
+            api.get("locations/student-station/"),
+            api.get("auth/users/me/"), // آدرس دریافت اطلاعات کاربر (ممکن است لازم باشد اصلاح شود)
+          ]);
 
         setStations(stationsResponse.data);
 
-        // فرض می‌کنیم پاسخ API ایستگاه انتخاب شده این شکلیه: { station: id }
         const selectedId = selectedStationResponse.data.station;
-
-        // پیدا کردن ایستگاه مطابق با id
         const matchedStation = stationsResponse.data.find(
           (station) => station.id === selectedId
         );
+        if (matchedStation) setSelectedStation(matchedStation);
 
-        if (matchedStation) {
-          setSelectedStation(matchedStation);
-        }
+        setUserInfo(userResponse.data);
       } catch (err) {
         console.error("خطا در دریافت داده‌ها:", err);
-        toast.error("خطا در دریافت ایستگاه‌ها");
+        toast.error("خطا در دریافت اطلاعات");
       }
     };
 
@@ -73,6 +77,19 @@ export default function StudentDashboard() {
     setSaving(false);
   };
 
+  // ذخیره تغییرات اطلاعات کاربر
+  const handleUserSave = async (updatedData) => {
+    try {
+      const response = await api.put("auth/users/me/", updatedData);
+      setUserInfo(response.data);
+      toast.success("اطلاعات با موفقیت ذخیره شد");
+      setEditModalOpen(false);
+    } catch (error) {
+      console.error("خطا در ذخیره اطلاعات:", error);
+      toast.error("خطا در ذخیره اطلاعات");
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-gradient-to-r from-green-200 via-green-300 to-green-400 p-8"
@@ -89,6 +106,14 @@ export default function StudentDashboard() {
           سلام، <span className="font-semibold">{username}</span> عزیز! خوش آمدی
           به داشبورد دانشجویان.
         </p>
+
+        <button
+          onClick={() => setEditModalOpen(true)}
+          className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          ویرایش اطلاعات کاربری
+        </button>
+
         <ul className="list-disc list-inside text-green-800 mb-6">
           <li>دسترسی به دوره‌ها و منابع آموزشی</li>
           <li>مشاهده نمرات و وضعیت تحصیلی</li>
@@ -154,6 +179,14 @@ export default function StudentDashboard() {
           )}
         </div>
       </main>
+
+      {/* مودال ویرایش کاربر */}
+      <EditUserModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        userData={userInfo}
+        onSave={handleUserSave}
+      />
 
       <ToastContainer
         position="top-center"

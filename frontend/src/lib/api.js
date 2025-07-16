@@ -30,7 +30,7 @@ export const login = (username, password) => {
 // Register function - sends user data to create a new account
 // Also uses raw axios because the user is not logged in yet
 export const register = (data) => {
-  return axios.post(`${BASE_URL}users/`, data);
+  return axios.post(`${BASE_URL}users/create/`, data);
 };
 
 // Function to check if a username is available
@@ -63,6 +63,12 @@ export async function checkEmailAvailability(email) {
     // On error, assume email is taken to avoid issues
     return false;
   }
+}
+
+
+// تابع آپدیت کاربر
+export async function updateUser(userId, userData) {
+  return api.put(`users/${userId}/`, userData);
 }
 
 export default api;

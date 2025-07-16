@@ -1,41 +1,10 @@
 import React, { useEffect, useState } from "react";
 import api from "../lib/api";
 import { toast } from "react-toastify";
-import { FaTrash } from "react-icons/fa";
-
-function DeleteUserModal({ username, onCancel, onConfirm }) {
-  return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-0"
-      onClick={onCancel}
-    >
-      <div
-        className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full translate-y-[-100px]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-bold mb-4">تایید حذف کاربر</h3>
-        <p className="mb-6">
-          آیا مطمئن هستید که می‌خواهید کاربر{" "}
-          <span className="font-semibold">{username}</span> را حذف کنید؟
-        </p>
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={onCancel}
-            className="cursor-pointer px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition"
-          >
-            انصراف
-          </button>
-          <button
-            onClick={onConfirm}
-            className="cursor-pointer px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
-          >
-            حذف
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import DeleteButton from "../components/DeleteButton";
+import DeleteModal from "../components/ConfirmDeleteModal";
+import UserListModal from "../components/UserListModal";
+import EditUserModal from "../components/UserEditModal";
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
@@ -43,6 +12,12 @@ export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [showUserListModal, setShowUserListModal] = useState(false);
+
+  // برای مودال ویرایش
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [editUserId, setEditUserId] = useState(null);
+  const [editUserData, setEditUserData] = useState(null);
 
   const role = localStorage.getItem("role");
   const currentUsername = localStorage.getItem("username");
@@ -64,6 +39,40 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
+  // باز کردن مودال ویرایش کاربر
+  const openEditUserModal = (user) => {
+    setEditUserId(user.id);
+    setEditUserData(user);
+    setShowEditUserModal(true);
+  };
+
+  // بستن مودال ویرایش
+  const closeEditUserModal = () => {
+    setShowEditUserModal(false);
+    setEditUserId(null);
+    setEditUserData(null);
+  };
+
+  // ذخیره تغییرات کاربر و آپدیت در سرور + به‌روزرسانی state
+  const handleSaveUser = async (updatedData) => {
+    try {
+      const res = await api.put(`users/${editUserId}/`, updatedData);
+      toast.success("کاربر با موفقیت به‌روزرسانی شد");
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === editUserId ? { ...user, ...res.data } : user
+        )
+      );
+
+      closeEditUserModal();
+    } catch (error) {
+      console.error("خطا در به‌روزرسانی کاربر:", error);
+      toast.error("خطا در به‌روزرسانی کاربر");
+    }
+  };
+
+  // حذف کاربر
   const requestDeleteUser = (user) => {
     if (role !== "superuser") {
       toast.error("شما اجازه حذف کاربر را ندارید");
@@ -79,7 +88,7 @@ export default function UserManagement() {
     try {
       await api.delete(`users/${userToDelete.id}/delete/`);
       toast.success("کاربر با موفقیت حذف شد");
-      fetchUsers();
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
     } catch (error) {
       console.error("خطا در حذف کاربر:", error);
       toast.error("خطا در حذف کاربر");
@@ -88,6 +97,7 @@ export default function UserManagement() {
     setUserToDelete(null);
   };
 
+  // تغییر دسترسی‌ها
   const togglePermission = async (userId, field, currentValue) => {
     if (role !== "superuser") {
       toast.error("شما اجازه تغییر دسترسی‌ها را ندارید");
@@ -99,19 +109,25 @@ export default function UserManagement() {
         [field]: !currentValue,
       });
       toast.success("دسترسی با موفقیت تغییر کرد");
-      fetchUsers();
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...user, [field]: !currentValue } : user
+        )
+      );
     } catch (error) {
       console.error("خطا در تغییر دسترسی:", error);
       toast.error("خطا در تغییر دسترسی");
     }
   };
 
-  // فیلتر کاربران بر اساس searchTerm
   const filteredUsers = users.filter(
     (user) =>
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const topUsers = filteredUsers.slice(0, 3);
 
   if (loading) {
     return (
@@ -182,7 +198,7 @@ export default function UserManagement() {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => {
+              {topUsers.map((user) => {
                 const isCurrentUser = user.username === currentUsername;
 
                 return (
@@ -211,24 +227,25 @@ export default function UserManagement() {
                       userId={user.id}
                     />
 
-                    <td className="py-2 px-3 border">
+                    <td className="py-2 px-3 border flex justify-center gap-2">
                       <button
+                        onClick={() => openEditUserModal(user)}
+                        className="bg-yellow-400 cursor-pointer hover:bg-yellow-500 text-white px-3 py-1 rounded text-sm font-semibold"
+                        title="ویرایش کاربر"
+                        aria-label="ویرایش کاربر"
+                      >
+                        ویرایش
+                      </button>
+                      <DeleteButton
                         onClick={() => requestDeleteUser(user)}
                         disabled={role !== "superuser"}
-                        className={`px-3 py-1 rounded cursor-pointer flex items-center gap-2 mx-auto ${
-                          role === "superuser"
-                            ? "bg-red-600 hover:bg-red-700 text-white"
-                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                        }`}
                         title={
                           role === "superuser"
                             ? "حذف کاربر"
                             : "شما اجازه حذف ندارید"
                         }
-                      >
-                        <FaTrash />
-                        حذف
-                      </button>
+                        aria-label="حذف کاربر"
+                      />
                     </td>
                   </tr>
                 );
@@ -238,11 +255,46 @@ export default function UserManagement() {
         </div>
       )}
 
-      {showDeleteModal && userToDelete && (
-        <DeleteUserModal
-          username={userToDelete.username}
+      {filteredUsers.length > 3 && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setShowUserListModal(true)}
+            className="bg-blue-600 cursor-pointer text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            مشاهده همه کاربران ({filteredUsers.length})
+          </button>
+        </div>
+      )}
+
+      {/* مودال نمایش کامل کاربران */}
+      <UserListModal
+        isOpen={showUserListModal}
+        onClose={() => setShowUserListModal(false)}
+        users={filteredUsers}
+        role={role}
+        currentUsername={currentUsername}
+        Cell={Cell}
+        requestDeleteUser={requestDeleteUser}
+        openEditUserModal={openEditUserModal} // پاس دادن تابع باز کردن مودال ویرایش
+      />
+
+      {/* مودال تأیید حذف */}
+      {userToDelete && (
+        <DeleteModal
+          itemName={`کاربر "${userToDelete.username}"`}
+          isOpen={showDeleteModal}
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleConfirmDelete}
+        />
+      )}
+
+      {/* مودال ویرایش کاربر */}
+      {showEditUserModal && editUserData && (
+        <EditUserModal
+          isOpen={showEditUserModal}
+          onClose={closeEditUserModal}
+          userData={editUserData}
+          onSave={handleSaveUser}
         />
       )}
     </div>

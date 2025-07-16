@@ -48,7 +48,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name', 'last_name',
             'is_active', 'is_staff', 'is_superuser'
         ]
-        read_only_fields = ['id', 'username','email']  # Prevent username and id from being changed
+        read_only_fields = ['id']  # Prevent username and id from being changed
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
