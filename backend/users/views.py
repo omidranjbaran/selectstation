@@ -42,6 +42,20 @@ class CurrentUserView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+    def put(self, request):
+        serializer = UserSerializer(request.user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    def patch(self, request):
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
     
 # Custom JWT token obtain view using a custom serializer
 class MyTokenObtainPairView(TokenObtainPairView):

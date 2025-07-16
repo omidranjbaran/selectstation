@@ -12,9 +12,9 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-import EditUserModal from "../components/UserEditModal";
+import RegularUserEditModal from "../components/RegularUserEditModal";
 
-// تنظیمات آیکون پیش‌فرض Leaflet
+// رفع مشکل آیکون مارکرها در Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -30,9 +30,7 @@ export default function StudentDashboard() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
-  const username = localStorage.getItem("username") || "دانشجو";
-
-  // گرفتن لیست ایستگاه‌ها و اطلاعات کاربر و ایستگاه انتخاب شده قبلی
+  // بارگذاری اولیه داده‌ها: ایستگاه‌ها، ایستگاه انتخاب شده و اطلاعات کاربر
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -40,7 +38,7 @@ export default function StudentDashboard() {
           await Promise.all([
             api.get("locations/stations/"),
             api.get("locations/student-station/"),
-            api.get("auth/users/me/"), // آدرس دریافت اطلاعات کاربر (ممکن است لازم باشد اصلاح شود)
+            api.get("users/me/"),
           ]);
 
         setStations(stationsResponse.data);
@@ -61,7 +59,7 @@ export default function StudentDashboard() {
     fetchData();
   }, []);
 
-  // ذخیره ایستگاه انتخاب‌شده
+  // ذخیره ایستگاه انتخاب شده کاربر
   const handleSave = async () => {
     if (!selectedStation) return;
     setSaving(true);
@@ -80,7 +78,7 @@ export default function StudentDashboard() {
   // ذخیره تغییرات اطلاعات کاربر
   const handleUserSave = async (updatedData) => {
     try {
-      const response = await api.put("auth/users/me/", updatedData);
+      const response = await api.put("/users/me/", updatedData);
       setUserInfo(response.data);
       toast.success("اطلاعات با موفقیت ذخیره شد");
       setEditModalOpen(false);
@@ -102,11 +100,9 @@ export default function StudentDashboard() {
       </header>
 
       <main className="bg-white rounded-xl shadow-lg p-6 max-w-3xl mx-auto">
-        <p className="text-lg mb-4">
-          سلام، <span className="font-semibold">{username}</span> عزیز! خوش آمدی
-          به داشبورد دانشجویان.
-        </p>
-
+      <p className="text-lg mb-4">
+        سلام، <span className="font-semibold">{userInfo?.first_name && userInfo?.last_name ? `${userInfo.first_name} ${userInfo.last_name}` : "دانشجو"}</span> عزیز! خوش آمدی به داشبورد دانشجویان.
+      </p>
         <button
           onClick={() => setEditModalOpen(true)}
           className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -120,46 +116,43 @@ export default function StudentDashboard() {
           <li>ارتباط با اساتید و پشتیبانی</li>
         </ul>
 
-        {/* نقشه ایستگاه‌ها */}
-        <h2 className="text-xl font-semibold mb-4 text-green-900">
-          انتخاب ایستگاه سوار شدن
-        </h2>
-        <div className="w-full h-[500px] rounded-xl overflow-hidden shadow-lg mt-4">
-          <MapContainer
-            center={[32.6546, 51.6675]}
-            zoom={12}
-            style={{ height: "100%", width: "100%" }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {stations.map((station) => (
-              <Marker
-                key={station.id}
-                position={[station.latitude, station.longitude]}
-                eventHandlers={{
-                  click: () => setSelectedStation(station),
-                }}
-                icon={
-                  selectedStation && selectedStation.id === station.id
-                    ? new L.Icon({
-                        iconUrl:
-                          "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png",
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 32],
-                        popupAnchor: [0, -32],
-                      })
-                    : new L.Icon.Default()
-                }
-              >
-                <Popup>{station.name}</Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        </div>
+        {!editModalOpen && (
+          <div className="w-full h-[500px] rounded-xl overflow-hidden shadow-lg mt-4">
+            <MapContainer
+              center={[32.6546, 51.6675]}
+              zoom={12}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {stations.map((station) => (
+                <Marker
+                  key={station.id}
+                  position={[station.latitude, station.longitude]}
+                  eventHandlers={{
+                    click: () => setSelectedStation(station),
+                  }}
+                  icon={
+                    selectedStation && selectedStation.id === station.id
+                      ? new L.Icon({
+                          iconUrl:
+                            "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png",
+                          iconSize: [32, 32],
+                          iconAnchor: [16, 32],
+                          popupAnchor: [0, -32],
+                        })
+                      : new L.Icon.Default()
+                  }
+                >
+                  <Popup>{station.name}</Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        )}
 
-        {/* دکمه ذخیره */}
         <div className="mt-4 text-center">
           <button
             disabled={!selectedStation || saving}
@@ -181,7 +174,7 @@ export default function StudentDashboard() {
       </main>
 
       {/* مودال ویرایش کاربر */}
-      <EditUserModal
+      <RegularUserEditModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         userData={userInfo}
