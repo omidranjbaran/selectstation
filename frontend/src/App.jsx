@@ -11,14 +11,17 @@ import UnauthorizedPage from "./pages/UnauthorizedPage";
 
 export default function App() {
   return (
+    // BrowserRouter provides the routing context to the app
     <BrowserRouter>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="*" element={<NotFoundPage />} /> {/* Catch-all route for 404 */}
 
+        {/* Protected route for Admin Dashboard accessible by superuser and staff roles */}
         <Route
           path="/dashboard/admin"
           element={
@@ -27,6 +30,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Protected route for Student Dashboard accessible by student role */}
         <Route
           path="/dashboard/student"
           element={

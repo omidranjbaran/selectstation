@@ -14,9 +14,9 @@ import LogoutButton from "../components/LogoutButton";
 import UserManagement from "../pages/UserManagement";
 import DeleteButton from "../components/DeleteButton";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
-import UserBadge from "../components/UserBadge";  // <-- ایمپورت UserBadge
+import UserBadge from "../components/UserBadge";  // <-- Import UserBadge
 
-// رفع مشکل آیکون مارکر
+// Fix marker icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
       setStats(res.data);
       setFilteredStats(res.data);
     } catch (err) {
-      console.error("خطا در دریافت آمار ایستگاه‌ها:", err);
+      console.error("Error fetching station stats:", err);
       toast.error("خطا در دریافت آمار ایستگاه‌ها");
     }
   };
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
   }, [searchTerm, stats]);
 
   useEffect(() => {
-    // بارگزاری نام کاربر از localStorage
+    // Load username from localStorage
     const user = localStorage.getItem("username");
     if (user) setUsername(user);
   }, []);
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
       toast.success("ایستگاه با موفقیت حذف شد!");
       fetchStats();
     } catch (err) {
-      console.error("خطا در حذف ایستگاه:", err);
+      console.error("Error deleting station:", err);
       toast.error("خطا در حذف ایستگاه!");
     }
     setShowDeleteModal(false);
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
       setLocation(null);
       fetchStats();
     } catch (err) {
-      console.error("خطا در افزودن ایستگاه:", err);
+      console.error("Error adding station:", err);
       toast.error("خطا در افزودن ایستگاه!");
     }
     setLoading(false);
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
         </header>
 
         <div className="flex flex-col 2xl:flex-row 2xl:items-start gap-8">
-          {/* بخش نقشه و فرم - سمت چپ */}
+          {/* Map and form section - left side */}
           <section
             className="w-full 2xl:w-3/5 mb-60 bg-white rounded-xl shadow-lg p-4 2xl:p-6 flex flex-col"
             style={{ minHeight: "600px" }}
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
             )}
           </section>
 
-          {/* بخش آمار و مدیریت کاربران - سمت راست */}
+          {/* Stats and user management section - right side */}
           <section className="w-full 2xl:w-2/5 flex flex-col gap-6">
             <div
               className="bg-white rounded-xl shadow-md p-6  2xl:mt-auto -mt-50 "
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
                 آمار انتخاب ایستگاه‌ها توسط دانشجویان
               </h2>
 
-              {/* کانتینر جستجو فیکس شده */}
+              {/* Sticky search container */}
               <div
                 style={{
                   position: "sticky",

@@ -14,7 +14,7 @@ export default function UserManagement() {
   const [userToDelete, setUserToDelete] = useState(null);
   const [showUserListModal, setShowUserListModal] = useState(false);
 
-  // برای مودال ویرایش
+  // For edit modal
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editUserId, setEditUserId] = useState(null);
   const [editUserData, setEditUserData] = useState(null);
@@ -39,21 +39,21 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
-  // باز کردن مودال ویرایش کاربر
+  // Open edit user modal
   const openEditUserModal = (user) => {
     setEditUserId(user.id);
     setEditUserData(user);
     setShowEditUserModal(true);
   };
 
-  // بستن مودال ویرایش
+  // Close edit user modal
   const closeEditUserModal = () => {
     setShowEditUserModal(false);
     setEditUserId(null);
     setEditUserData(null);
   };
 
-  // ذخیره تغییرات کاربر و آپدیت در سرور + به‌روزرسانی state
+  // Save user changes, update server and update state
   const handleSaveUser = async (updatedData) => {
     try {
       const res = await api.put(`users/${editUserId}/`, updatedData);
@@ -72,7 +72,7 @@ export default function UserManagement() {
     }
   };
 
-  // حذف کاربر
+  // Request to delete a user
   const requestDeleteUser = (user) => {
     if (role !== "superuser") {
       toast.error("شما اجازه حذف کاربر را ندارید");
@@ -97,7 +97,7 @@ export default function UserManagement() {
     setUserToDelete(null);
   };
 
-  // تغییر دسترسی‌ها
+  // Toggle permissions
   const togglePermission = async (userId, field, currentValue) => {
     if (role !== "superuser") {
       toast.error("شما اجازه تغییر دسترسی‌ها را ندارید");
@@ -156,7 +156,7 @@ export default function UserManagement() {
       <h2 className="text-2xl font-bold mb-4 text-blue-800">مدیریت کاربران</h2>
 
       <div className="mb-4 text-gray-600">
-        نقش فعلی:{" "}
+        Current role:{" "}
         <span
           className={`font-semibold ${
             role === "superuser"
@@ -229,9 +229,21 @@ export default function UserManagement() {
 
                     <td className="py-2 px-3 border flex justify-center gap-2">
                       <button
-                        onClick={() => openEditUserModal(user)}
-                        className="bg-yellow-400 cursor-pointer hover:bg-yellow-500 text-white px-3 py-1 rounded text-sm font-semibold"
-                        title="ویرایش کاربر"
+                        onClick={() => {
+                          if (role === "superuser") {
+                            openEditUserModal(user);
+                          } 
+                        }}
+                        className={`px-3 py-1 rounded text-sm font-semibold ${
+                          role === "superuser"
+                            ? "bg-yellow-400 hover:bg-yellow-500 text-white cursor-pointer"
+                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        }`}
+                        title={
+                          role === "superuser"
+                            ? "ویرایش کاربر"
+                            : "فقط سوپریوزرها می‌توانند کاربر را ویرایش کنند"
+                        }
                         aria-label="ویرایش کاربر"
                       >
                         ویرایش
@@ -266,7 +278,7 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* مودال نمایش کامل کاربران */}
+      {/* Modal for showing full user list */}
       <UserListModal
         isOpen={showUserListModal}
         onClose={() => setShowUserListModal(false)}
@@ -275,10 +287,10 @@ export default function UserManagement() {
         currentUsername={currentUsername}
         Cell={Cell}
         requestDeleteUser={requestDeleteUser}
-        openEditUserModal={openEditUserModal} // پاس دادن تابع باز کردن مودال ویرایش
+        openEditUserModal={openEditUserModal} // pass the edit modal open function
       />
 
-      {/* مودال تأیید حذف */}
+      {/* Confirm delete modal */}
       {userToDelete && (
         <DeleteModal
           itemName={`کاربر "${userToDelete.username}"`}
@@ -288,7 +300,7 @@ export default function UserManagement() {
         />
       )}
 
-      {/* مودال ویرایش کاربر */}
+      {/* Edit user modal */}
       {showEditUserModal && editUserData && (
         <EditUserModal
           isOpen={showEditUserModal}

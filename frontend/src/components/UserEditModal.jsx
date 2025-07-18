@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 
 const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
+  // Initialize form state with default values including booleans for checkboxes
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -10,18 +11,20 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
     is_superuser: false,
   });
 
+  // When userData changes, update form state with new values or defaults
   useEffect(() => {
     if (userData) {
       setFormData({
         username: userData.username || "",
         email: userData.email || "",
-        is_active: !!userData.is_active,
+        is_active: !!userData.is_active,   // Ensure boolean type
         is_staff: !!userData.is_staff,
         is_superuser: !!userData.is_superuser,
       });
     }
   }, [userData]);
 
+  // Handle both text inputs and checkbox inputs dynamically
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
     setFormData((prev) => ({
@@ -30,6 +33,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
     }));
   };
 
+  // On submit, trigger onSave with current form data and close the modal
   const handleSubmit = () => {
     onSave(formData);
     onClose();
@@ -45,11 +49,12 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
 
           <form
             onSubmit={(e) => {
-              e.preventDefault();
+              e.preventDefault(); // Prevent default form submission reload
               handleSubmit();
             }}
             className="space-y-6"
           >
+            {/* Username input */}
             <div>
               <label htmlFor="username" className="block text-sm font-semibold mb-2">
                 نام کاربری
@@ -66,6 +71,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               />
             </div>
 
+            {/* Email input */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold mb-2">
                 ایمیل
@@ -82,12 +88,14 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               />
             </div>
 
+            {/* User status checkboxes */}
             <fieldset className="pt-3 border-t border-gray-200">
               <legend className="text-md font-semibold text-gray-700 mb-4">
                 وضعیت کاربر
               </legend>
 
               <div className="flex justify-between items-center gap-6">
+                {/* Active user checkbox */}
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -99,8 +107,9 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
                   <span className="text-gray-800 font-medium">فعال</span>
                 </label>
 
-                <div className="h-6 border-l border-gray-300"></div> {/* خط جداکننده */}
+                <div className="h-6 border-l border-gray-300"></div> {/* Separator line */}
 
+                {/* Staff user checkbox */}
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -112,8 +121,9 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
                   <span className="text-gray-800 font-medium">ادمین (Staff)</span>
                 </label>
 
-                <div className="h-6 border-l border-gray-300"></div> {/* خط جداکننده */}
+                <div className="h-6 border-l border-gray-300"></div> {/* Separator line */}
 
+                {/* Superuser checkbox */}
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -127,6 +137,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               </div>
             </fieldset>
 
+            {/* Action buttons */}
             <div className="flex justify-end space-x-4">
               <button
                 type="button"

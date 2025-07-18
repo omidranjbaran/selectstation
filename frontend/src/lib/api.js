@@ -65,8 +65,7 @@ export async function checkEmailAvailability(email) {
   }
 }
 
-
-// تابع آپدیت کاربر
+// Update user function
 export async function updateUser(userId, userData) {
   return api.put(`users/${userId}/`, userData);
 }

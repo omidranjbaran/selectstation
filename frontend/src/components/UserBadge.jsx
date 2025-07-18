@@ -19,9 +19,12 @@ export default function UserBadge({ username }) {
         whitespace-nowrap
         cursor-default
       "
-      title={`کاربر: ${username}`}
+      title={`کاربر: ${username}`} // Tooltip showing the username in Persian
     >
+      {/* User icon with some opacity and shadow for better visual */}
       <FaUserCircle size={30} className="opacity-95 drop-shadow-lg" />
+      
+      {/* Username text, truncated if too long, responsive font size */}
       <span className="text-lg sm:text-xl truncate">{username}</span>
     </div>
   );

@@ -2,37 +2,59 @@ from rest_framework import permissions
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
-    Custom permission to allow:
-    - Only authenticated users can access.
-    - Staff and superusers can view the full user list.
-    - Users can view and update their own profile.
+    Custom permission to manage user access:
+    - Only authenticated users are allowed.
+    - Regular users can access/update their own data.
+    - Admins can view/update regular users (but NOT other admins or superusers).
     - Only superusers can delete users.
     """
 
     def has_permission(self, request, view):
-        # Allow access only to authenticated users
-        if not request.user or not request.user.is_authenticated:
+        user = request.user
+
+        # Deny access if the user is not authenticated
+        if not user or not user.is_authenticated:
             return False
 
-        # Allow staff and superusers to GET the full user list (no 'pk' in URL)
+        # Allow staff/superuser to list all users (GET without pk)
         if request.method == 'GET' and not view.kwargs.get('pk'):
-            return request.user.is_staff or request.user.is_superuser
+            return user.is_staff or user.is_superuser
 
-        # Allow other requests (e.g., POST for create) for authenticated users
+        # Allow anyone to POST (used for registration)
+        if request.method == 'POST':
+            return True
+
+        # Allow permission check to continue at object level
         return True
 
     def has_object_permission(self, request, view, obj):
-        # Superusers have full access
-        if request.user.is_superuser:
+        user = request.user
+
+        # Superusers can do anything
+        if user.is_superuser:
             return True
 
-        # Allow owners and staff to GET, PUT, PATCH their own profile
-        if request.method in ['GET', 'PUT', 'PATCH']:
-            return obj == request.user or request.user.is_staff
-
-        # Only superusers can DELETE users (others denied)
+        # Only superusers can delete users
         if request.method == 'DELETE':
             return False
 
-        # Deny all other cases
+        # Regular users can only view/edit their own account
+        if not user.is_staff:
+            return obj == user  # Can only access themselves
+
+        # If the user is a staff (admin but not superuser):
+        if user.is_staff:
+            # Cannot access themselves
+            if obj == user:
+                return False
+
+            # Cannot access superusers
+            if obj.is_superuser:
+                return False
+
+            # Cannot access other admins
+            if obj.is_staff:
+                return False
+
+        # Otherwise deny
         return False

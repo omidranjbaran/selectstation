@@ -29,6 +29,7 @@ class UserRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserDetailSerializer
     permission_classes = [IsOwnerOrAdmin]
+    lookup_field = 'pk'
 
 
 # Delete a user — only owner or admin can access

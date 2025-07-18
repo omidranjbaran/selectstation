@@ -1,6 +1,22 @@
 import React, { useState } from "react";
 import DeleteButton from "../components/DeleteButton";
 
+/**
+ * UserListModal component renders a searchable modal with a list of users.
+ * It displays user details and action buttons for editing and deleting users,
+ * with permissions controlled by the current user's role.
+ * 
+ * Props:
+ * - isOpen: boolean to control modal visibility
+ * - onClose: function to close the modal
+ * - users: array of user objects to display
+ * - role: string indicating current user's role ("superuser" can edit/delete)
+ * - currentUsername: string of the logged-in user's username
+ * - Cell: React component to render boolean fields (is_active, is_staff, is_superuser)
+ * - requestDeleteUser: function called with user object to trigger delete action
+ * - openEditUserModal: function called with user object to open edit modal
+ */
+
 export default function UserListModal({
   isOpen,
   onClose,
@@ -11,19 +27,23 @@ export default function UserListModal({
   requestDeleteUser,
   openEditUserModal,
 }) {
+  // State to store current search term entered by user
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Filter users by matching username or email with the search term (case-insensitive)
   const filteredUsers = users.filter(
     (user) =>
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // If modal is not open, don't render anything
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
       <div className="bg-white max-w-6xl w-full rounded-lg p-6 shadow-lg relative">
+        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-3 left-3 text-gray-500 hover:text-gray-700 text-xl cursor-pointer"
@@ -32,8 +52,10 @@ export default function UserListModal({
           ✖
         </button>
 
+        {/* Modal title */}
         <h3 className="text-xl font-semibold mb-4 text-blue-700">لیست کامل کاربران</h3>
 
+        {/* Search input */}
         <input
           type="text"
           placeholder="جستجو بر اساس نام کاربری یا ایمیل..."
@@ -42,6 +64,7 @@ export default function UserListModal({
           className="mb-4 w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
 
+        {/* Show message if no users found */}
         {filteredUsers.length === 0 ? (
           <p className="text-gray-500">هیچ کاربری یافت نشد.</p>
         ) : (
@@ -59,6 +82,7 @@ export default function UserListModal({
               </thead>
               <tbody>
                 {filteredUsers.map((user) => {
+                  // Highlight row if this user is the current logged-in user
                   const isCurrentUser = user.username === currentUsername;
                   return (
                     <tr
@@ -70,22 +94,12 @@ export default function UserListModal({
                       <td className="py-2 px-3 border">{user.username}</td>
                       <td className="py-2 px-3 border">{user.email}</td>
 
-                      <Cell
-                        field="is_active"
-                        value={user.is_active}
-                        userId={user.id}
-                      />
-                      <Cell
-                        field="is_staff"
-                        value={user.is_staff}
-                        userId={user.id}
-                      />
-                      <Cell
-                        field="is_superuser"
-                        value={user.is_superuser}
-                        userId={user.id}
-                      />
+                      {/* Render boolean status cells using the Cell component */}
+                      <Cell field="is_active" value={user.is_active} userId={user.id} />
+                      <Cell field="is_staff" value={user.is_staff} userId={user.id} />
+                      <Cell field="is_superuser" value={user.is_superuser} userId={user.id} />
 
+                      {/* Action buttons with permissions based on role */}
                       <td className="py-2 px-3 border flex justify-center gap-2">
                         <button
                           onClick={() => openEditUserModal(user)}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 
 const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
+  // State to hold form input values
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -9,6 +10,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
     last_name: "",
   });
 
+  // When userData prop changes, update formData accordingly
   useEffect(() => {
     if (userData) {
       setFormData({
@@ -20,6 +22,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
     }
   }, [userData]);
 
+  // Update formData state when inputs change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -28,20 +31,27 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
     }));
   };
 
+  // Handle form submission and call onSave with current form data
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
   };
 
   return (
+    // Headless UI Dialog for accessible modal with overlay
     <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Overlay background with black semi-transparent layer */}
       <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-60">
+        {/* Modal content panel */}
         <Dialog.Panel className="bg-white text-gray-900 rounded-2xl p-8 max-w-md w-full shadow-xl transform transition-all duration-300">
+          {/* Modal title */}
           <Dialog.Title className="text-3xl font-extrabold mb-7 text-center tracking-wide">
             ویرایش اطلاعات کاربری
           </Dialog.Title>
 
+          {/* Form inputs */}
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Username input */}
             <div>
               <label htmlFor="username" className="block text-sm font-semibold mb-2">
                 نام کاربری
@@ -58,6 +68,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               />
             </div>
 
+            {/* First name input */}
             <div>
               <label htmlFor="first_name" className="block text-sm font-semibold mb-2">
                 نام
@@ -72,6 +83,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               />
             </div>
 
+            {/* Last name input */}
             <div>
               <label htmlFor="last_name" className="block text-sm font-semibold mb-2">
                 نام خانوادگی
@@ -86,6 +98,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               />
             </div>
 
+            {/* Email input */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold mb-2">
                 ایمیل
@@ -102,6 +115,7 @@ const EditUserModal = ({ isOpen, onClose, userData, onSave }) => {
               />
             </div>
 
+            {/* Action buttons: cancel and save */}
             <div className="flex justify-end space-x-4">
               <button
                 type="button"

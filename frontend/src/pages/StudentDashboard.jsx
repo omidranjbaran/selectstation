@@ -14,7 +14,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 import RegularUserEditModal from "../components/RegularUserEditModal";
 
-// رفع مشکل آیکون مارکرها در Leaflet
+// Fix Leaflet marker icon issues
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: markerIcon2x,
@@ -30,7 +30,7 @@ export default function StudentDashboard() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
 
-  // بارگذاری اولیه داده‌ها: ایستگاه‌ها، ایستگاه انتخاب شده و اطلاعات کاربر
+  // Initial data loading: stations, selected station, and user info
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -51,7 +51,7 @@ export default function StudentDashboard() {
 
         setUserInfo(userResponse.data);
       } catch (err) {
-        console.error("خطا در دریافت داده‌ها:", err);
+        console.error("Error fetching data:", err);
         toast.error("خطا در دریافت اطلاعات");
       }
     };
@@ -59,7 +59,7 @@ export default function StudentDashboard() {
     fetchData();
   }, []);
 
-  // ذخیره ایستگاه انتخاب شده کاربر
+  // Save user's selected station
   const handleSave = async () => {
     if (!selectedStation) return;
     setSaving(true);
@@ -69,13 +69,13 @@ export default function StudentDashboard() {
       });
       toast.success("ایستگاه با موفقیت ذخیره شد!");
     } catch (error) {
-      console.error("خطا در ذخیره ایستگاه:", error);
+      console.error("Error saving station:", error);
       toast.error("خطا در ذخیره ایستگاه، لطفا دوباره تلاش کنید.");
     }
     setSaving(false);
   };
 
-  // ذخیره تغییرات اطلاعات کاربر
+  // Save user info updates
   const handleUserSave = async (updatedData) => {
     try {
       const response = await api.put("/users/me/", updatedData);
@@ -83,7 +83,7 @@ export default function StudentDashboard() {
       toast.success("اطلاعات با موفقیت ذخیره شد");
       setEditModalOpen(false);
     } catch (error) {
-      console.error("خطا در ذخیره اطلاعات:", error);
+      console.error("Error saving user info:", error);
       toast.error("خطا در ذخیره اطلاعات");
     }
   };
@@ -100,9 +100,15 @@ export default function StudentDashboard() {
       </header>
 
       <main className="bg-white rounded-xl shadow-lg p-6 max-w-3xl mx-auto">
-      <p className="text-lg mb-4">
-        سلام، <span className="font-semibold">{userInfo?.first_name && userInfo?.last_name ? `${userInfo.first_name} ${userInfo.last_name}` : "دانشجو"}</span> عزیز! خوش آمدی به داشبورد دانشجویان.
-      </p>
+        <p className="text-lg mb-4">
+          سلام،{" "}
+          <span className="font-semibold">
+            {userInfo?.first_name && userInfo?.last_name
+              ? `${userInfo.first_name} ${userInfo.last_name}`
+              : "دانشجو"}
+          </span>{" "}
+          عزیز! خوش آمدی به داشبورد دانشجویان.
+        </p>
         <button
           onClick={() => setEditModalOpen(true)}
           className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -173,7 +179,7 @@ export default function StudentDashboard() {
         </div>
       </main>
 
-      {/* مودال ویرایش کاربر */}
+      {/* User edit modal */}
       <RegularUserEditModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}

@@ -111,7 +111,7 @@ export default function HomePage() {
             fontWeight: "900",
             marginBottom: "1.2rem",
             color: "#f3f4f6",
-            textShadow: "0 0 10px #60a5fa, 0 0 20px #2563eb, 0 0 30px #1e40af", // نور متحرک ساده (می‌تونی بعدا انیمیشن بدی)
+            textShadow: "0 0 10px #60a5fa, 0 0 20px #2563eb, 0 0 30px #1e40af", // simple animated glow (you can animate it later)
           }}
         >
           سامانه ثبت ایستگاه
